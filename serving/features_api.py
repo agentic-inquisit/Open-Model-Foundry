@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Query, 
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List, Optional
-from datetime import datetime, timedelta
+from datetime import datetime
 import logging
 import sys
 import os
@@ -31,18 +31,17 @@ _labeling = LabelingService()
 router = APIRouter(prefix="/api/v1", tags=["features"])
 
 # ============================================================================
-# CURRENT USER — local-first, single-user tool
+# CURRENT USER — local-first, single-user tool (no auth: everything is owned
+# by the one local user)
 # ============================================================================
 
 LOCAL_OWNER = "local"
 
 class TokenPayload(BaseModel):
     sub: str
-    role: str
-    exp: datetime
 
 async def get_current_user() -> TokenPayload:
-    return TokenPayload(sub=LOCAL_OWNER, role="admin", exp=datetime.utcnow() + timedelta(hours=24))
+    return TokenPayload(sub=LOCAL_OWNER)
 
 # ============================================================================
 # 1. IMAGE GALLERY ENDPOINTS
@@ -124,6 +123,8 @@ async def delete_image(
 # 2. MODEL REGISTRY ENDPOINTS
 # ============================================================================
 
+ALLOWED_MODEL_EXTENSIONS = {".pth", ".pt", ".onnx", ".h5", ".bin", ".safetensors", ".tflite"}
+
 class RegistryModelResponse(BaseModel):
     id: int
     name: str
@@ -154,10 +155,8 @@ async def deploy_model(
     model_id: int,
     current_user: TokenPayload = Depends(get_current_user)
 ):
-    """Deploy model to production (Admin only) — sets access_level to public,
+    """Deploy model to production — sets access_level to public,
     the closest concept the registry actually has."""
-    if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Admin access required")
     _registry.set_access_level(model_id, "public")
     return {"message": f"Model {model_id} access_level set to public"}
 
@@ -168,16 +167,19 @@ async def upload_custom_model(
     description: str = Form(""),
     current_user: TokenPayload = Depends(get_current_user)
 ):
-    """Upload custom trained model (Admin)"""
-    if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Admin access required")
+    """Upload custom trained model"""
+    ext = os.path.splitext(file.filename or "")[1].lower()
+    if ext not in ALLOWED_MODEL_EXTENSIONS:
+        raise HTTPException(status_code=400, detail=f"Unsupported model file type: {ext or 'unknown'}")
 
     result = _registry.register_model(model_name, description=description, owner=current_user.sub)
     model_id = result["model_id"]
 
-    checkpoint_dir = os.path.join("finetuned_models", model_name)
+    # Path is keyed off the DB-assigned model_id, not the user-supplied
+    # model_name/filename, so it can't be steered outside finetuned_models/.
+    checkpoint_dir = os.path.join("finetuned_models", str(model_id))
     os.makedirs(checkpoint_dir, exist_ok=True)
-    checkpoint_path = os.path.join(checkpoint_dir, file.filename)
+    checkpoint_path = os.path.join(checkpoint_dir, f"checkpoint{ext}")
     content = await file.read()
     with open(checkpoint_path, "wb") as f:
         f.write(content)
@@ -350,9 +352,7 @@ async def verify_annotation(
     approved: bool,
     current_user: TokenPayload = Depends(get_current_user)
 ):
-    """Verify annotation quality (Admin)"""
-    if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Admin access required")
+    """Verify annotation quality"""
     # Not wired: edge/labeling_service.py's labels table has no
     # verified/approved column, so there's nothing real to write to yet.
     raise HTTPException(status_code=501, detail="Not implemented")
@@ -378,10 +378,8 @@ async def deploy_model_version(
     version_id: int,
     current_user: TokenPayload = Depends(get_current_user)
 ):
-    """Deploy specific model version (Admin) — each version is its own row
+    """Deploy specific model version — each version is its own row
     in the registry, so version_id is deployed directly."""
-    if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Admin access required")
     _registry.set_access_level(version_id, "public")
     return {"message": f"Model {model_id} version {version_id} access_level set to public"}
 
