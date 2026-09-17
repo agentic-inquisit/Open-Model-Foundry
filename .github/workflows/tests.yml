@@ -31,8 +31,7 @@ jobs:
       run: |
         # Stop the build if there are Python syntax errors or undefined names
         flake8 sentinel tests --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings
-        flake8 sentinel tests --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        flake8 sentinel tests --count --max-complexity=10 --max-line-length=127 --statistics
 
     - name: Check format with black
       run: |
@@ -45,7 +44,6 @@ jobs:
     - name: Type check with mypy
       run: |
         mypy sentinel --ignore-missing-imports
-      continue-on-error: true
 
     - name: Run tests with pytest
       run: |
@@ -76,7 +74,7 @@ jobs:
 
     - name: Pylint
       run: |
-        pylint sentinel --exit-zero --max-line-length=120
+        pylint sentinel --max-line-length=120 --fail-under=8
 
   security:
     runs-on: ubuntu-latest
@@ -95,8 +93,8 @@ jobs:
 
     - name: Run Bandit security checks
       run: |
-        bandit -r sentinel -f json -o bandit-report.json || true
+        bandit -r sentinel -f json -o bandit-report.json
 
     - name: Check dependencies with safety
       run: |
-        safety check --json || true
+        safety check --json
