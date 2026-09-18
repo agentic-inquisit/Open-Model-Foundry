@@ -4,9 +4,10 @@ CLI Commands for Open Model Foundry
 
 import click
 from pathlib import Path
-import json
 from datetime import datetime
 import uuid
+
+from sentinel.cli.dataset_browser import DatasetBrowser
 
 
 # ============================================================================
@@ -61,7 +62,7 @@ def import_model(path, name, type):
     )
 
     click.echo(f"\n✓ Registered in model_registry.db: {name} {reg_result['version']} "
-              f"(id={reg_result['model_id']})")
+               f"(id={reg_result['model_id']})")
     click.echo(f"  Use in training: sentinel train start --model {name} --dataset <path>")
 
 
@@ -82,7 +83,7 @@ def list_models():
 
     registry = ModelRegistry()
     registered = registry.get_all_models()
-    click.echo(f"\n📦 Registered (model_registry.db — imports and completed training runs):")
+    click.echo("\n📦 Registered (model_registry.db — imports and completed training runs):")
     if not registered:
         click.echo("    (none yet — 'sentinel model import' or a completed training run adds one)")
     else:
@@ -90,7 +91,7 @@ def list_models():
             latest = entry["versions"][0] if entry["versions"] else None
             if latest:
                 click.echo(f"    {entry['name']:20s} — {entry['version_count']} version(s), "
-                          f"latest {latest['version']} ({latest['status']})")
+                           f"latest {latest['version']} ({latest['status']})")
 
 
 @model_group.command(name="info")
@@ -102,13 +103,13 @@ def model_info(model_name):
     from llm import supported_models
 
     if model_name == "cnn":
-        click.echo(f"\n📋 Model: cnn (built-in)")
-        click.echo(f"   Type: Classification")
-        click.echo(f"   Framework: JAX/Flax")
-        click.echo(f"   Architecture: 3x (conv → relu → avg_pool) → dense(256) → dense(num_classes)")
-        click.echo(f"   Pretrained: No — trains from scratch each run")
-        click.echo(f"   Input: Images, default 224x224 (--image-size to change)")
-        click.echo(f"   Latency: not benchmarked")
+        click.echo("\n📋 Model: cnn (built-in)")
+        click.echo("   Type: Classification")
+        click.echo("   Framework: JAX/Flax")
+        click.echo("   Architecture: 3x (conv → relu → avg_pool) → dense(256) → dense(num_classes)")
+        click.echo("   Pretrained: No — trains from scratch each run")
+        click.echo("   Input: Images, default 224x224 (--image-size to change)")
+        click.echo("   Latency: not benchmarked")
         return
 
     llm_entry = next(
@@ -131,7 +132,7 @@ def model_info(model_name):
     versions = registry.get_model_versions(model_name)
     if not versions:
         click.echo(f"❌ Model '{model_name}' not found (checked built-ins, the LLM catalog, "
-                  f"and model_registry.db)")
+                   f"and model_registry.db)")
         return
 
     click.echo(f"\n📋 Model: {model_name} — {len(versions)} version(s) in model_registry.db")
@@ -143,8 +144,8 @@ def model_info(model_name):
         meta = v["metadata"]
         if meta.get("epochs_trained"):
             click.echo(f"     Trained: {meta['epochs_trained']} epochs, "
-                      f"final_train_loss={meta['final_train_loss']}, "
-                      f"best_val_loss={meta['best_val_loss']}")
+                       f"final_train_loss={meta['final_train_loss']}, "
+                       f"best_val_loss={meta['best_val_loss']}")
         ds = v["dataset"]
         if ds.get("total_images"):
             click.echo(f"     Dataset: {ds['total_images']} images, classes={ds['classes']}")
@@ -154,12 +155,37 @@ def model_info(model_name):
 # DATASET COMMANDS
 # ============================================================================
 
-from sentinel.cli.dataset_browser import DatasetBrowser
-
 @click.group(name="dataset")
 def dataset_group():
     """Manage datasets"""
     pass
+
+
+def _print_class_distribution(summary, total):
+    """Show per-class counts if the dataset has more than one class."""
+    if summary['num_classes'] <= 1:
+        return
+    click.echo(f"\n🏷️ Classes ({summary['num_classes']}):")
+    for cls, count in summary['classes'].items():
+        percentage = (count / total) * 100
+        click.echo(f"   • {cls}: {count} images ({percentage:.1f}%)")
+
+
+def _print_dataset_warnings(summary):
+    """Show validation warnings, if any."""
+    if not summary['warnings']:
+        return
+    click.echo("\n⚠️ Warnings:")
+    for warning in summary['warnings']:
+        click.echo(f"   {warning}")
+
+
+def _print_sample_images(browser):
+    """Show a few sample image paths from the dataset."""
+    samples = browser.get_sample_images(3)
+    click.echo("\n📸 Sample images:")
+    for img in samples:
+        click.echo(f"   - {Path(img).name}")
 
 
 @dataset_group.command(name="prepare")
@@ -200,29 +226,16 @@ def prepare_dataset(path, split, preview, report):
         val_count = int(total * split[1])
         test_count = total - train_count - val_count
 
-        click.echo(f"\n✓ Dataset prepared:")
+        click.echo("\n✓ Dataset prepared:")
         click.echo(f"   Train: {train_count} images ({split[0]*100:.0f}%)")
         click.echo(f"   Val:   {val_count} images ({split[1]*100:.0f}%)")
         click.echo(f"   Test:  {test_count} images ({split[2]*100:.0f}%)")
 
-        # Show class distribution if multiple classes
-        if summary['num_classes'] > 1:
-            click.echo(f"\n🏷️ Classes ({summary['num_classes']}):")
-            for cls, count in summary['classes'].items():
-                percentage = (count / total) * 100
-                click.echo(f"   • {cls}: {count} images ({percentage:.1f}%)")
-
-        # Show warnings
-        if summary['warnings']:
-            click.echo(f"\n⚠️ Warnings:")
-            for warning in summary['warnings']:
-                click.echo(f"   {warning}")
+        _print_class_distribution(summary, total)
+        _print_dataset_warnings(summary)
 
         if preview:
-            samples = browser.get_sample_images(3)
-            click.echo(f"\n📸 Sample images:")
-            for img in samples:
-                click.echo(f"   - {Path(img).name}")
+            _print_sample_images(browser)
 
     except FileNotFoundError as e:
         click.echo(f"\n❌ Error: {e}", err=True)
@@ -266,6 +279,95 @@ def train_group():
     pass
 
 
+def _run_llm_training(model, dataset, model_format, epochs, batch_size, lr, job_id, tracker):
+    """Load and LoRA/QLoRA fine-tune an LLM catalog model. Returns the training result dict."""
+    from llm import model_loader, lora_trainer
+
+    click.echo(f"\n⏳ Loading {model} ({model_format})...")
+    loaded = model_loader.load(model, model_format)
+
+    def on_progress(update: dict) -> None:
+        loss = update.get("loss")
+        if loss is None:
+            return
+        epoch = update.get("epoch") or 0.0
+        tracker.set_progress(job_id, epoch)
+        click.echo(f"   step {update.get('step')} | epoch {epoch:.2f} | loss {loss:.4f}")
+
+    config = lora_trainer.LoRAConfig(
+        epochs=epochs, learning_rate=lr, batch_size=batch_size,
+        output_dir=f"training_outputs/lora/{job_id}",
+    )
+    result = lora_trainer.train(loaded, dataset, config, on_progress=on_progress)
+
+    click.echo("\n✓ Training complete")
+    click.echo(f"   Final loss: {result.get('final_loss')}")
+    click.echo(f"   Adapter saved to: {result.get('adapter_path')}")
+    return result
+
+
+def _run_vision_training(model, dataset, target_object, epochs, batch_size, num_classes,
+                         image_size, enable_validation, job_id, tracker, metrics_collector):
+    """Fine-tune the built-in JAX/Flax CNN. Returns the training result dict."""
+    from sentinel.cli.job_tracker import TrainingMetrics
+    from edge import jax_train
+
+    if model != "cnn":
+        click.echo(f"\n⚠ '{model}' isn't the built-in cnn or an LLM catalog entry — "
+                   f"edge/jax_train.py only implements one vision architecture (the "
+                   f"built-in CNN), so this trains that, not whatever '{model}' was "
+                   f"registered/imported as. The job/registry record its name as "
+                   f"'{model}' for tracking, not as a claim it's a different architecture.")
+
+    click.echo("\n⏳ Training (progress prints below as each epoch finishes)...")
+    result = jax_train.run_finetuning(
+        dataset_dir=dataset,
+        target_object=target_object or model,
+        steps=epochs, batch_size=batch_size,
+        num_classes=num_classes, image_size=image_size,
+        enable_validation=enable_validation,
+        checkpoint_dir=f"training_outputs/vision/{job_id}",
+    )
+    if result.get("status") == "error":
+        raise RuntimeError(result.get("message", "Vision training failed"))
+
+    train_losses = result.get("train_loss_history", [])
+    train_accs = result.get("train_acc_history", [])
+    val_losses = result.get("val_loss_history", [])
+    val_accs = result.get("val_acc_history", [])
+    for i in range(len(train_losses)):
+        metric = TrainingMetrics(
+            epoch=i + 1,
+            loss=train_losses[i],
+            accuracy=train_accs[i] if i < len(train_accs) else 0.0,
+            val_loss=val_losses[i] if i < len(val_losses) else 0.0,
+            val_accuracy=val_accs[i] if i < len(val_accs) else 0.0,
+            timestamp=datetime.now().isoformat(),
+        )
+        tracker.add_metrics(job_id, metric)
+        metrics_collector.metrics.append(metric)
+
+    click.echo("\n✓ Training complete")
+    click.echo(f"   Final train loss: {result.get('final_train_loss')}")
+    click.echo(f"   Best val loss: {result.get('best_val_loss')}")
+    click.echo(f"   Checkpoint: {result.get('best_checkpoint')}")
+    return result
+
+
+def _print_live_dashboard(kind, tracker, job_id, metrics_collector):
+    """Render the post-training --live view, when requested."""
+    from sentinel.cli.dashboard import TerminalDashboard
+
+    if kind == "llm":
+        click.echo("\n(--live shows the full metrics dashboard for vision jobs only — "
+                   "LLM training here only reports loss, not accuracy, so there's no "
+                   "honest chart to draw. Loss was streamed above as training ran.)")
+        return
+    job = tracker.get_job(job_id)  # reload with final state
+    dashboard = TerminalDashboard(job, metrics_collector)
+    click.echo(dashboard.render_full(show_chart=True))
+
+
 @train_group.command(name="start")
 @click.option("--model", "-m", required=True,
               help="'cnn' (built-in vision), an LLM catalog name/repo id, or a name "
@@ -291,17 +393,16 @@ def train_group():
 def train_start(model, dataset, epochs, batch_size, lr, gpu, num_classes, image_size,
                 target_object, model_format, enable_validation, live, job_id):
     """
-    Vision models train via edge/jax_train.py against a dataset directory of 
-    class subfolders. LLM catalog models train via llm/lora_trainer.py (LoRA/QLoRA) 
-    against a JSONL dataset. 
+    Vision models train via edge/jax_train.py against a dataset directory of
+    class subfolders. LLM catalog models train via llm/lora_trainer.py (LoRA/QLoRA)
+    against a JSONL dataset.
 
     Examples:
         sentinel train start --model cnn --dataset ./images --epochs 10
         sentinel train start --model Qwen3.8 --dataset ./chat.jsonl --live
         sentinel train start --model cnn --dataset ./images --job-id exp_001
     """
-    from sentinel.cli.job_tracker import JobTracker, MetricsCollector, TrainingMetrics
-    from sentinel.cli.dashboard import TerminalDashboard
+    from sentinel.cli.job_tracker import JobTracker, MetricsCollector
     from llm import supported_models
 
     if not job_id:
@@ -314,7 +415,7 @@ def train_start(model, dataset, epochs, batch_size, lr, gpu, num_classes, image_
     )
     kind = "llm" if llm_entry else "vision"
 
-    click.echo(f"\n🚀 Starting training")
+    click.echo("\n🚀 Starting training")
     click.echo(f"   Job ID: {job_id}")
     click.echo(f"   Model: {model} ({kind})")
     click.echo(f"   Dataset: {dataset}")
@@ -323,11 +424,11 @@ def train_start(model, dataset, epochs, batch_size, lr, gpu, num_classes, image_
     click.echo(f"   Learning rate: {lr}")
 
     tracker = JobTracker()
-    job = tracker.create_job(
+    tracker.create_job(
         job_id=job_id, model_name=model, dataset_path=dataset,
         epochs=epochs, batch_size=batch_size, learning_rate=lr, gpu_enabled=gpu,
     )
-    click.echo(f"\n✓ Job created and tracked")
+    click.echo("\n✓ Job created and tracked")
     click.echo(f"   Job stored in: {tracker.storage_dir / f'{job_id}.json'}")
 
     tracker.start_job(job_id)
@@ -335,71 +436,12 @@ def train_start(model, dataset, epochs, batch_size, lr, gpu, num_classes, image_
 
     try:
         if kind == "llm":
-            from llm import model_loader, lora_trainer
-
-            click.echo(f"\n⏳ Loading {model} ({model_format})...")
-            loaded = model_loader.load(model, model_format)
-
-            def on_progress(update: dict) -> None:
-                loss = update.get("loss")
-                if loss is None:
-                    return
-                epoch = update.get("epoch") or 0.0
-                tracker.set_progress(job_id, epoch)
-                click.echo(f"   step {update.get('step')} | epoch {epoch:.2f} | loss {loss:.4f}")
-
-            config = lora_trainer.LoRAConfig(
-                epochs=epochs, learning_rate=lr, batch_size=batch_size,
-                output_dir=f"training_outputs/lora/{job_id}",
-            )
-            result = lora_trainer.train(loaded, dataset, config, on_progress=on_progress)
-
-            click.echo(f"\n✓ Training complete")
-            click.echo(f"   Final loss: {result.get('final_loss')}")
-            click.echo(f"   Adapter saved to: {result.get('adapter_path')}")
-
+            _run_llm_training(model, dataset, model_format, epochs, batch_size, lr,
+                              job_id, tracker)
         else:
-            from edge import jax_train
-
-            if model != "cnn":
-                click.echo(f"\n⚠ '{model}' isn't the built-in cnn or an LLM catalog entry — "
-                          f"edge/jax_train.py only implements one vision architecture (the "
-                          f"built-in CNN), so this trains that, not whatever '{model}' was "
-                          f"registered/imported as. The job/registry record its name as "
-                          f"'{model}' for tracking, not as a claim it's a different architecture.")
-
-            click.echo(f"\n⏳ Training (progress prints below as each epoch finishes)...")
-            result = jax_train.run_finetuning(
-                dataset_dir=dataset,
-                target_object=target_object or model,
-                steps=epochs, batch_size=batch_size,
-                num_classes=num_classes, image_size=image_size,
-                enable_validation=enable_validation,
-                checkpoint_dir=f"training_outputs/vision/{job_id}",
-            )
-            if result.get("status") == "error":
-                raise RuntimeError(result.get("message", "Vision training failed"))
-
-            train_losses = result.get("train_loss_history", [])
-            train_accs = result.get("train_acc_history", [])
-            val_losses = result.get("val_loss_history", [])
-            val_accs = result.get("val_acc_history", [])
-            for i in range(len(train_losses)):
-                metric = TrainingMetrics(
-                    epoch=i + 1,
-                    loss=train_losses[i],
-                    accuracy=train_accs[i] if i < len(train_accs) else 0.0,
-                    val_loss=val_losses[i] if i < len(val_losses) else 0.0,
-                    val_accuracy=val_accs[i] if i < len(val_accs) else 0.0,
-                    timestamp=datetime.now().isoformat(),
-                )
-                tracker.add_metrics(job_id, metric)
-                metrics_collector.metrics.append(metric)
-
-            click.echo(f"\n✓ Training complete")
-            click.echo(f"   Final train loss: {result.get('final_train_loss')}")
-            click.echo(f"   Best val loss: {result.get('best_val_loss')}")
-            click.echo(f"   Checkpoint: {result.get('best_checkpoint')}")
+            _run_vision_training(model, dataset, target_object, epochs, batch_size,
+                                 num_classes, image_size, enable_validation, job_id,
+                                 tracker, metrics_collector)
 
         tracker.complete_job(job_id)
 
@@ -409,17 +451,10 @@ def train_start(model, dataset, epochs, batch_size, lr, gpu, num_classes, image_
         return
 
     if live:
-        if kind == "llm":
-            click.echo(f"\n(--live shows the full metrics dashboard for vision jobs only — "
-                      f"LLM training here only reports loss, not accuracy, so there's no "
-                      f"honest chart to draw. Loss was streamed above as training ran.)")
-        else:
-            job = tracker.get_job(job_id)  # reload with final state
-            dashboard = TerminalDashboard(job, metrics_collector)
-            click.echo(dashboard.render_full(show_chart=True))
+        _print_live_dashboard(kind, tracker, job_id, metrics_collector)
 
     click.echo(f"\n   View job: sentinel train status {job_id}")
-    click.echo(f"   List jobs: sentinel train list")
+    click.echo("   List jobs: sentinel train list")
 
 
 @train_group.command(name="status")
@@ -433,20 +468,19 @@ def train_status(job_id):
         sentinel train status exp_001
     """
     from sentinel.cli.job_tracker import JobTracker
-    from sentinel.cli.dashboard import TerminalDashboard, MetricsFormatter
-    from sentinel.cli.job_tracker import MetricsCollector
+    from sentinel.cli.dashboard import MetricsFormatter
 
     tracker = JobTracker()
     job = tracker.get_job(job_id)
 
     if not job:
         click.echo(f"\n❌ Job {job_id} not found")
-        click.echo(f"\n📋 Available jobs:")
+        click.echo("\n📋 Available jobs:")
         for j in tracker.list_jobs()[:5]:
             click.echo(f"   • {j.job_id} ({j.status.value}) - {j.model_name}")
         return
 
-    click.echo(f"\n📊 Job Status")
+    click.echo("\n📊 Job Status")
     click.echo(f"   Job ID:   {job.job_id}")
     click.echo(f"   Status:   {job.status.value.upper()}")
     click.echo(f"   Model:    {job.model_name}")
@@ -456,14 +490,14 @@ def train_status(job_id):
 
     if job.metrics:
         latest = job.metrics[-1]
-        click.echo(f"\n📈 Latest Metrics:")
+        click.echo("\n📈 Latest Metrics:")
         click.echo(f"   Loss:     {latest.loss:.4f}")
         click.echo(f"   Accuracy: {MetricsFormatter.format_percentage(latest.accuracy)}")
         click.echo(f"   Val Loss: {latest.val_loss:.4f}")
         click.echo(f"   Val Acc:  {MetricsFormatter.format_percentage(latest.val_accuracy)}")
 
     if job.started_at:
-        click.echo(f"\n⏱️ Timing:")
+        click.echo("\n⏱️ Timing:")
         click.echo(f"   Started: {job.started_at}")
         if job.completed_at:
             click.echo(f"   Completed: {job.completed_at}")
@@ -491,7 +525,7 @@ def train_list(status, limit):
     jobs = tracker.list_jobs(status=filter_status)[:limit]
 
     if not jobs:
-        click.echo(f"\n📭 No jobs found")
+        click.echo("\n📭 No jobs found")
         if status:
             click.echo(f"   (with status: {status})")
         return

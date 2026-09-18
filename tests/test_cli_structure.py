@@ -4,10 +4,6 @@ Verifies that all CLI modules are properly structured
 """
 
 import sys
-from pathlib import Path
-
-# Add parent directory to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
 
 
 def test_cli_main_imports():
