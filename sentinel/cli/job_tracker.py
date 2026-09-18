@@ -293,7 +293,7 @@ class MetricsCollector:
         return "→ stable"
 
     def estimate_time_remaining(self, start_time: float, current_epoch: int,
-                               total_epochs: int) -> str:
+                                total_epochs: int) -> str:
         """Estimate time remaining based on epoch duration"""
         if current_epoch == 0:
             return "calculating..."

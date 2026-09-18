@@ -3,7 +3,7 @@ Dashboard Module
 Terminal-based visualization of training metrics
 """
 
-from typing import List, Optional
+from typing import List
 from sentinel.cli.job_tracker import TrainingJob, TrainingMetrics, MetricsCollector
 
 
@@ -70,7 +70,7 @@ class TerminalDashboard:
         return "\n".join(lines)
 
     def render_chart(self, metric_name: str = "loss", width: int = 60,
-                    height: int = 10) -> str:
+                     height: int = 10) -> str:
         """Render simple ASCII chart of metric"""
         metrics = self.metrics.get_metrics()
         if not metrics:
@@ -132,7 +132,7 @@ class TerminalDashboard:
 
         parts.append(self.render_header())
         parts.append(self.render_job_info())
-        parts.append(f"\n⏳ Progress:")
+        parts.append("\n⏳ Progress:")
         parts.append(self.render_progress_bar())
         parts.append(self.render_metrics())
 
