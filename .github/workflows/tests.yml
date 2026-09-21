@@ -40,7 +40,7 @@ jobs:
 
     - name: Sort imports with isort
       run: |
-        isort --check-only sentinel tests
+        isort --check-only --diff sentinel tests
 
     - name: Type check with mypy
       run: |
@@ -96,6 +96,7 @@ jobs:
     - name: Run Bandit security checks
       run: |
         bandit -r sentinel -f json -o bandit-report.json
+        cat bandit-report.json
 
     - name: Check dependencies with safety
       run: |
