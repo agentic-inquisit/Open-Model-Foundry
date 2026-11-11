@@ -94,7 +94,7 @@ class Benchmark:
         Returns:
             Dict with training metrics
         """
-        print(f"🏋️  Benchmarking training: {self.model_name}")
+        print(f"Benchmarking training: {self.model_name}")
         print(f"   Epochs: {num_epochs}")
         print(f"   Batch size: {batch_size}")
         print(f"   Dataset size: {dataset_size}")
@@ -229,7 +229,7 @@ class BenchmarkSuite:
         with open(self.output_file, "w") as f:
             json.dump(self.results, f, indent=2)
 
-        print(f"\n✅ Results saved to: {self.output_file}")
+        print(f"\nResults saved to: {self.output_file}")
 
     def print_summary(self) -> None:
         """Print summary of results."""
