@@ -275,8 +275,7 @@ def main():
 
     # Save and print results
     suite.save()
-    suite.print_summary()
-
+    # suite.print_summary()
 
 if __name__ == "__main__":
     main()
