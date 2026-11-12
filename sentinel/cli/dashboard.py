@@ -4,7 +4,8 @@ Terminal-based visualization of training metrics
 """
 
 from typing import List
-from sentinel.cli.job_tracker import TrainingJob, TrainingMetrics, MetricsCollector
+
+from sentinel.cli.job_tracker import MetricsCollector, TrainingJob, TrainingMetrics
 
 
 class TerminalDashboard:
@@ -18,9 +19,9 @@ class TerminalDashboard:
     def render_header(self) -> str:
         """Render dashboard header"""
         lines = []
-        lines.append("\n" + "="*70)
+        lines.append("\n" + "=" * 70)
         lines.append("🎯 Training Dashboard".center(70))
-        lines.append("="*70)
+        lines.append("=" * 70)
         return "\n".join(lines)
 
     def render_job_info(self) -> str:
@@ -60,7 +61,9 @@ class TerminalDashboard:
         # Show best seen
         lines.append("\n🏆 Best Seen:")
         lines.append(f"   Best Loss:     {self.metrics.get_best_loss():.4f}")
-        lines.append(f"   Best Accuracy: {self.metrics.get_best_accuracy():.4f} ({self.metrics.get_best_accuracy()*100:.2f}%)")
+        lines.append(
+            f"   Best Accuracy: {self.metrics.get_best_accuracy():.4f} ({self.metrics.get_best_accuracy()*100:.2f}%)"
+        )
 
         # Show trends
         lines.append("\n📈 Trends:")
@@ -69,8 +72,7 @@ class TerminalDashboard:
 
         return "\n".join(lines)
 
-    def render_chart(self, metric_name: str = "loss", width: int = 60,
-                     height: int = 10) -> str:
+    def render_chart(self, metric_name: str = "loss", width: int = 60, height: int = 10) -> str:
         """Render simple ASCII chart of metric"""
         metrics = self.metrics.get_metrics()
         if not metrics:
@@ -123,7 +125,7 @@ class TerminalDashboard:
     def render_footer(self) -> str:
         """Render dashboard footer"""
         lines = []
-        lines.append("="*70 + "\n")
+        lines.append("=" * 70 + "\n")
         return "\n".join(lines)
 
     def render_full(self, show_chart: bool = True) -> str:
