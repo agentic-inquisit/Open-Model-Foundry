@@ -2,15 +2,13 @@
 Test suite for Job Tracker and Dashboard modules
 """
 
-import sys
-from pathlib import Path
-import tempfile
 import shutil
+import sys
+import tempfile
+from pathlib import Path
 
-from sentinel.cli.job_tracker import (
-    JobTracker, JobStatus, TrainingMetrics, MetricsCollector
-)
-from sentinel.cli.dashboard import TerminalDashboard, MetricsFormatter, ProgressIndicator
+from sentinel.cli.dashboard import MetricsFormatter, ProgressIndicator, TerminalDashboard
+from sentinel.cli.job_tracker import JobStatus, JobTracker, MetricsCollector, TrainingMetrics
 
 
 def test_create_job():
@@ -23,7 +21,7 @@ def test_create_job():
         epochs=10,
         batch_size=32,
         learning_rate=0.001,
-        gpu_enabled=True
+        gpu_enabled=True,
     )
 
     assert job.job_id == "test_001"
@@ -43,7 +41,7 @@ def test_job_status_transitions():
         dataset_path="./images",
         epochs=5,
         batch_size=32,
-        learning_rate=0.001
+        learning_rate=0.001,
     )
 
     # Start job
@@ -69,7 +67,7 @@ def test_add_metrics():
         dataset_path="./images",
         epochs=5,
         batch_size=32,
-        learning_rate=0.001
+        learning_rate=0.001,
     )
 
     tracker.start_job("test_003")
@@ -81,7 +79,7 @@ def test_add_metrics():
         accuracy=0.3,
         val_loss=2.4,
         val_accuracy=0.32,
-        timestamp="2026-08-30T10:00:00"
+        timestamp="2026-08-30T10:00:00",
     )
 
     job = tracker.add_metrics("test_003", metric1)
@@ -97,7 +95,7 @@ def test_add_metrics():
         accuracy=0.5,
         val_loss=1.9,
         val_accuracy=0.52,
-        timestamp="2026-08-30T10:01:00"
+        timestamp="2026-08-30T10:01:00",
     )
 
     job = tracker.add_metrics("test_003", metric2)
@@ -144,7 +142,7 @@ def test_job_persistence():
             dataset_path="./images",
             epochs=5,
             batch_size=32,
-            learning_rate=0.001
+            learning_rate=0.001,
         )
 
         # Verify file exists
@@ -176,7 +174,7 @@ def test_job_listing():
             dataset_path="./images",
             epochs=5,
             batch_size=32,
-            learning_rate=0.001
+            learning_rate=0.001,
         )
 
     jobs = tracker.list_jobs()
@@ -203,13 +201,14 @@ def test_terminal_dashboard():
         dataset_path="./images",
         epochs=5,
         batch_size=32,
-        learning_rate=0.001
+        learning_rate=0.001,
     )
 
     tracker.start_job("dash_001")
 
     # Add metrics
     from sentinel.cli.job_tracker import MetricsCollector
+
     collector = MetricsCollector()
     collector.add_metric(epoch=1, loss=2.5, accuracy=0.3, val_loss=2.4, val_accuracy=0.32)
 
@@ -274,9 +273,12 @@ def test_error_handling():
     # Try to add metrics to nonexistent job
     try:
         metric = TrainingMetrics(
-            epoch=1, loss=2.5, accuracy=0.3,
-            val_loss=2.4, val_accuracy=0.32,
-            timestamp="2026-08-30T10:00:00"
+            epoch=1,
+            loss=2.5,
+            accuracy=0.3,
+            val_loss=2.4,
+            val_accuracy=0.32,
+            timestamp="2026-08-30T10:00:00",
         )
         tracker.add_metrics("nonexistent", metric)
         assert False, "Should raise ValueError"
@@ -287,9 +289,9 @@ def test_error_handling():
 
 
 if __name__ == "__main__":
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Testing Job Tracker and Dashboard Modules")
-    print("="*60 + "\n")
+    print("=" * 60 + "\n")
 
     tests = [
         test_create_job,
@@ -314,11 +316,12 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"✗ {test.__name__}: {e}")
             import traceback
+
             traceback.print_exc()
             failed += 1
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print(f"Results: {passed} passed, {failed} failed")
-    print("="*60 + "\n")
+    print("=" * 60 + "\n")
 
     sys.exit(0 if failed == 0 else 1)
