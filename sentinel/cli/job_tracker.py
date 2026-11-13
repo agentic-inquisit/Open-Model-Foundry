@@ -5,7 +5,7 @@ Tracks training jobs, metrics, and status
 
 import json
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
@@ -55,11 +55,7 @@ class TrainingJob:
     current_epoch: float = 0
     total_epochs: int = 0
     progress_percent: float = 0.0
-    metrics: Optional[List[TrainingMetrics]] = None
-
-    def __post_init__(self):
-        if self.metrics is None:
-            self.metrics = []
+    metrics: List[TrainingMetrics] = field(default_factory=list)
 
     def to_dict(self):
         return {
