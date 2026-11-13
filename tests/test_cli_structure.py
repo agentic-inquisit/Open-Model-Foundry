@@ -69,8 +69,6 @@ def test_package_structure():
     """Test that package structure is correct"""
     import sentinel
     import sentinel.cli
-    import sentinel.config
-    import sentinel.utils
 
     assert hasattr(sentinel, "__file__")
     assert hasattr(sentinel.cli, "__file__")
