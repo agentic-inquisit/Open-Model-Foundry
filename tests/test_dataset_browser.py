@@ -3,10 +3,10 @@ Test suite for DatasetBrowser module
 Verifies dataset scanning, validation, and analysis
 """
 
-import sys
-from pathlib import Path
-import tempfile
 import shutil
+import sys
+import tempfile
+from pathlib import Path
 
 from sentinel.cli.dataset_browser import DatasetBrowser
 
@@ -17,11 +17,7 @@ def create_test_dataset():
     tmppath = Path(tmpdir)
 
     # Create class folders with images
-    classes = {
-        "dogs": 5,
-        "cats": 3,
-        "birds": 2
-    }
+    classes = {"dogs": 5, "cats": 3, "birds": 2}
 
     for class_name, count in classes.items():
         class_dir = tmppath / class_name
@@ -94,7 +90,9 @@ def test_summary_generation():
         assert summary["structure"] == "class_folders"
         assert summary["num_classes"] == 3
         assert "dogs" in summary["classes"]
-        print(f"✓ Summary generated: {summary['total_images']} images, {summary['num_classes']} classes")
+        print(
+            f"✓ Summary generated: {summary['total_images']} images, {summary['num_classes']} classes"
+        )
 
     finally:
         shutil.rmtree(tmppath)
@@ -130,8 +128,10 @@ def test_split_generation():
         assert splits["train"]["count"] == 6
         assert splits["val"]["count"] == 2
         assert splits["test"]["count"] == 2
-        print(f"✓ Splits generated: {splits['train']['count']} train, "
-              f"{splits['val']['count']} val, {splits['test']['count']} test")
+        print(
+            f"✓ Splits generated: {splits['train']['count']} train, "
+            f"{splits['val']['count']} val, {splits['test']['count']} test"
+        )
 
     finally:
         shutil.rmtree(tmppath)
@@ -202,9 +202,9 @@ def test_error_handling():
 
 
 if __name__ == "__main__":
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Testing DatasetBrowser Module")
-    print("="*60 + "\n")
+    print("=" * 60 + "\n")
 
     tests = [
         test_dataset_browser_scan,
@@ -230,8 +230,8 @@ if __name__ == "__main__":
             print(f"✗ {test.__name__}: {e}")
             failed += 1
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print(f"Results: {passed} passed, {failed} failed")
-    print("="*60 + "\n")
+    print("=" * 60 + "\n")
 
     sys.exit(0 if failed == 0 else 1)
