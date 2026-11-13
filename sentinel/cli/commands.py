@@ -2,17 +2,18 @@
 CLI Commands for Open Model Foundry
 """
 
-import click
-from pathlib import Path
-from datetime import datetime
 import uuid
+from datetime import datetime
+from pathlib import Path
+
+import click
 
 from sentinel.cli.dataset_browser import DatasetBrowser
-
 
 # ============================================================================
 # MODEL COMMANDS
 # ============================================================================
+
 
 @click.group(name="model")
 def model_group():
@@ -21,12 +22,23 @@ def model_group():
 
 
 @model_group.command(name="import")
-@click.option("--path", "-p", required=True, type=click.Path(exists=True),
-              help="Path to model file (.pth, .pt, or HuggingFace model ID)")
-@click.option("--name", "-n", required=True,
-              help="Model name for reference (e.g., 'custom_resnet')")
-@click.option("--type", "-t", type=click.Choice(["pytorch", "huggingface", "onnx", "tensorflow"]),
-              default="pytorch", help="Model type (default: pytorch)")
+@click.option(
+    "--path",
+    "-p",
+    required=True,
+    type=click.Path(exists=True),
+    help="Path to model file (.pth, .pt, or HuggingFace model ID)",
+)
+@click.option(
+    "--name", "-n", required=True, help="Model name for reference (e.g., 'custom_resnet')"
+)
+@click.option(
+    "--type",
+    "-t",
+    type=click.Choice(["pytorch", "huggingface", "onnx", "tensorflow"]),
+    default="pytorch",
+    help="Model type (default: pytorch)",
+)
 def import_model(path, name, type):
     """
     Register an externally-sourced model in the model registry so it shows
@@ -61,8 +73,10 @@ def import_model(path, name, type):
         reg_result["model_id"], "model_imported", f"path={path}, type={type}", "cli"
     )
 
-    click.echo(f"\n✓ Registered in model_registry.db: {name} {reg_result['version']} "
-               f"(id={reg_result['model_id']})")
+    click.echo(
+        f"\n✓ Registered in model_registry.db: {name} {reg_result['version']} "
+        f"(id={reg_result['model_id']})"
+    )
     click.echo(f"  Use in training: sentinel train start --model {name} --dataset <path>")
 
 
@@ -90,8 +104,10 @@ def list_models():
         for entry in registered:
             latest = entry["versions"][0] if entry["versions"] else None
             if latest:
-                click.echo(f"    {entry['name']:20s} — {entry['version_count']} version(s), "
-                           f"latest {latest['version']} ({latest['status']})")
+                click.echo(
+                    f"    {entry['name']:20s} — {entry['version_count']} version(s), "
+                    f"latest {latest['version']} ({latest['status']})"
+                )
 
 
 @model_group.command(name="info")
@@ -113,12 +129,19 @@ def model_info(model_name):
         return
 
     llm_entry = next(
-        (m for m in supported_models.list_models()
-         if model_name in (m["display_name"], m["repo_id"])),
+        (
+            m
+            for m in supported_models.list_models()
+            if model_name in (m["display_name"], m["repo_id"])
+        ),
         None,
     )
     if llm_entry:
-        tag = "verified" if llm_entry["verified"] else "unconfirmed — check on Hugging Face before use"
+        tag = (
+            "verified"
+            if llm_entry["verified"]
+            else "unconfirmed — check on Hugging Face before use"
+        )
         click.echo(f"\n📋 Model: {llm_entry['display_name']}")
         click.echo(f"   Family: {llm_entry['family']}")
         click.echo(f"   Repo ID: {llm_entry['repo_id']} ({tag})")
@@ -131,8 +154,10 @@ def model_info(model_name):
     registry = ModelRegistry()
     versions = registry.get_model_versions(model_name)
     if not versions:
-        click.echo(f"❌ Model '{model_name}' not found (checked built-ins, the LLM catalog, "
-                   f"and model_registry.db)")
+        click.echo(
+            f"❌ Model '{model_name}' not found (checked built-ins, the LLM catalog, "
+            f"and model_registry.db)"
+        )
         return
 
     click.echo(f"\n📋 Model: {model_name} — {len(versions)} version(s) in model_registry.db")
@@ -143,9 +168,11 @@ def model_info(model_name):
             click.echo(f"     Description: {v['description']}")
         meta = v["metadata"]
         if meta.get("epochs_trained"):
-            click.echo(f"     Trained: {meta['epochs_trained']} epochs, "
-                       f"final_train_loss={meta['final_train_loss']}, "
-                       f"best_val_loss={meta['best_val_loss']}")
+            click.echo(
+                f"     Trained: {meta['epochs_trained']} epochs, "
+                f"final_train_loss={meta['final_train_loss']}, "
+                f"best_val_loss={meta['best_val_loss']}"
+            )
         ds = v["dataset"]
         if ds.get("total_images"):
             click.echo(f"     Dataset: {ds['total_images']} images, classes={ds['classes']}")
@@ -155,6 +182,7 @@ def model_info(model_name):
 # DATASET COMMANDS
 # ============================================================================
 
+
 @click.group(name="dataset")
 def dataset_group():
     """Manage datasets"""
@@ -163,20 +191,20 @@ def dataset_group():
 
 def _print_class_distribution(summary, total):
     """Show per-class counts if the dataset has more than one class."""
-    if summary['num_classes'] <= 1:
+    if summary["num_classes"] <= 1:
         return
     click.echo(f"\n🏷️ Classes ({summary['num_classes']}):")
-    for cls, count in summary['classes'].items():
+    for cls, count in summary["classes"].items():
         percentage = (count / total) * 100
         click.echo(f"   • {cls}: {count} images ({percentage:.1f}%)")
 
 
 def _print_dataset_warnings(summary):
     """Show validation warnings, if any."""
-    if not summary['warnings']:
+    if not summary["warnings"]:
         return
     click.echo("\n⚠️ Warnings:")
-    for warning in summary['warnings']:
+    for warning in summary["warnings"]:
         click.echo(f"   {warning}")
 
 
@@ -189,10 +217,17 @@ def _print_sample_images(browser):
 
 
 @dataset_group.command(name="prepare")
-@click.option("--path", "-p", required=True, type=click.Path(exists=True),
-              help="Path to dataset folder")
-@click.option("--split", "-s", nargs=3, type=float, default=[0.8, 0.1, 0.1],
-              help="Train/val/test split (default: 0.8 0.1 0.1)")
+@click.option(
+    "--path", "-p", required=True, type=click.Path(exists=True), help="Path to dataset folder"
+)
+@click.option(
+    "--split",
+    "-s",
+    nargs=3,
+    type=float,
+    default=[0.8, 0.1, 0.1],
+    help="Train/val/test split (default: 0.8 0.1 0.1)",
+)
 @click.option("--preview", is_flag=True, help="Show sample images")
 @click.option("--report", is_flag=True, help="Show detailed analysis")
 def prepare_dataset(path, split, preview, report):
@@ -221,7 +256,7 @@ def prepare_dataset(path, split, preview, report):
         click.echo(f"   Structure: {summary['structure'].replace('_', ' ').title()}")
 
         # Calculate splits
-        total = summary['total_images']
+        total = summary["total_images"]
         train_count = int(total * split[0])
         val_count = int(total * split[1])
         test_count = total - train_count - val_count
@@ -273,6 +308,7 @@ def dataset_info(path, export):
 # TRAINING COMMANDS
 # ============================================================================
 
+
 @click.group(name="train")
 def train_group():
     """Train and fine-tune models"""
@@ -281,7 +317,7 @@ def train_group():
 
 def _run_llm_training(model, dataset, model_format, epochs, batch_size, lr, job_id, tracker):
     """Load and LoRA/QLoRA fine-tune an LLM catalog model. Returns the training result dict."""
-    from llm import model_loader, lora_trainer
+    from llm import lora_trainer, model_loader
 
     click.echo(f"\n⏳ Loading {model} ({model_format})...")
     loaded = model_loader.load(model, model_format)
@@ -295,7 +331,9 @@ def _run_llm_training(model, dataset, model_format, epochs, batch_size, lr, job_
         click.echo(f"   step {update.get('step')} | epoch {epoch:.2f} | loss {loss:.4f}")
 
     config = lora_trainer.LoRAConfig(
-        epochs=epochs, learning_rate=lr, batch_size=batch_size,
+        epochs=epochs,
+        learning_rate=lr,
+        batch_size=batch_size,
         output_dir=f"training_outputs/lora/{job_id}",
     )
     result = lora_trainer.train(loaded, dataset, config, on_progress=on_progress)
@@ -306,25 +344,40 @@ def _run_llm_training(model, dataset, model_format, epochs, batch_size, lr, job_
     return result
 
 
-def _run_vision_training(model, dataset, target_object, epochs, batch_size, num_classes,
-                         image_size, enable_validation, job_id, tracker, metrics_collector):
+def _run_vision_training(
+    model,
+    dataset,
+    target_object,
+    epochs,
+    batch_size,
+    num_classes,
+    image_size,
+    enable_validation,
+    job_id,
+    tracker,
+    metrics_collector,
+):
     """Fine-tune the built-in JAX/Flax CNN. Returns the training result dict."""
-    from sentinel.cli.job_tracker import TrainingMetrics
     from edge import jax_train
+    from sentinel.cli.job_tracker import TrainingMetrics
 
     if model != "cnn":
-        click.echo(f"\n⚠ '{model}' isn't the built-in cnn or an LLM catalog entry — "
-                   f"edge/jax_train.py only implements one vision architecture (the "
-                   f"built-in CNN), so this trains that, not whatever '{model}' was "
-                   f"registered/imported as. The job/registry record its name as "
-                   f"'{model}' for tracking, not as a claim it's a different architecture.")
+        click.echo(
+            f"\n⚠ '{model}' isn't the built-in cnn or an LLM catalog entry — "
+            f"edge/jax_train.py only implements one vision architecture (the "
+            f"built-in CNN), so this trains that, not whatever '{model}' was "
+            f"registered/imported as. The job/registry record its name as "
+            f"'{model}' for tracking, not as a claim it's a different architecture."
+        )
 
     click.echo("\n⏳ Training (progress prints below as each epoch finishes)...")
     result = jax_train.run_finetuning(
         dataset_dir=dataset,
         target_object=target_object or model,
-        steps=epochs, batch_size=batch_size,
-        num_classes=num_classes, image_size=image_size,
+        steps=epochs,
+        batch_size=batch_size,
+        num_classes=num_classes,
+        image_size=image_size,
         enable_validation=enable_validation,
         checkpoint_dir=f"training_outputs/vision/{job_id}",
     )
@@ -359,9 +412,11 @@ def _print_live_dashboard(kind, tracker, job_id, metrics_collector):
     from sentinel.cli.dashboard import TerminalDashboard
 
     if kind == "llm":
-        click.echo("\n(--live shows the full metrics dashboard for vision jobs only — "
-                   "LLM training here only reports loss, not accuracy, so there's no "
-                   "honest chart to draw. Loss was streamed above as training ran.)")
+        click.echo(
+            "\n(--live shows the full metrics dashboard for vision jobs only — "
+            "LLM training here only reports loss, not accuracy, so there's no "
+            "honest chart to draw. Loss was streamed above as training ran.)"
+        )
         return
     job = tracker.get_job(job_id)  # reload with final state
     dashboard = TerminalDashboard(job, metrics_collector)
@@ -369,29 +424,65 @@ def _print_live_dashboard(kind, tracker, job_id, metrics_collector):
 
 
 @train_group.command(name="start")
-@click.option("--model", "-m", required=True,
-              help="'cnn' (built-in vision), an LLM catalog name/repo id, or a name "
-                   "already in model_registry.db")
-@click.option("--dataset", "-d", required=True,
-              help="Vision: directory of class subfolders (dataset/<class>/<images>). "
-                   "LLM: JSONL file.")
+@click.option(
+    "--model",
+    "-m",
+    required=True,
+    help="'cnn' (built-in vision), an LLM catalog name/repo id, or a name "
+    "already in model_registry.db",
+)
+@click.option(
+    "--dataset",
+    "-d",
+    required=True,
+    help="Vision: directory of class subfolders (dataset/<class>/<images>). " "LLM: JSONL file.",
+)
 @click.option("--epochs", "-e", type=int, default=5, help="Number of epochs (default: 5)")
 @click.option("--batch-size", "-b", type=int, default=4, help="Batch size (default: 4)")
 @click.option("--lr", type=float, default=1e-3, help="Learning rate (default: 1e-3)")
-@click.option("--gpu", is_flag=True, help="Record GPU intent on the job (device placement "
-                                          "is chosen automatically either way)")
-@click.option("--num-classes", type=int, default=None,
-              help="Vision only. Omit to derive from the dataset's class subfolders.")
+@click.option(
+    "--gpu",
+    is_flag=True,
+    help="Record GPU intent on the job (device placement " "is chosen automatically either way)",
+)
+@click.option(
+    "--num-classes",
+    type=int,
+    default=None,
+    help="Vision only. Omit to derive from the dataset's class subfolders.",
+)
 @click.option("--image-size", type=int, default=224, help="Vision only (default: 224)")
 @click.option("--target-object", default=None, help="Vision only. Defaults to --model.")
-@click.option("--model-format", type=click.Choice(["huggingface", "gguf"]), default="huggingface",
-              help="LLM only (default: huggingface)")
-@click.option("--enable-validation/--no-validation", default=True,
-              help="Vision only: hold out part of the dataset for validation (default: on)")
-@click.option("--live", is_flag=True, help="Render the full terminal dashboard after training completes")
+@click.option(
+    "--model-format",
+    type=click.Choice(["huggingface", "gguf"]),
+    default="huggingface",
+    help="LLM only (default: huggingface)",
+)
+@click.option(
+    "--enable-validation/--no-validation",
+    default=True,
+    help="Vision only: hold out part of the dataset for validation (default: on)",
+)
+@click.option(
+    "--live", is_flag=True, help="Render the full terminal dashboard after training completes"
+)
 @click.option("--job-id", default=None, help="Custom job ID (optional)")
-def train_start(model, dataset, epochs, batch_size, lr, gpu, num_classes, image_size,
-                target_object, model_format, enable_validation, live, job_id):
+def train_start(
+    model,
+    dataset,
+    epochs,
+    batch_size,
+    lr,
+    gpu,
+    num_classes,
+    image_size,
+    target_object,
+    model_format,
+    enable_validation,
+    live,
+    job_id,
+):
     """
     Vision models train via edge/jax_train.py against a dataset directory of
     class subfolders. LLM catalog models train via llm/lora_trainer.py (LoRA/QLoRA)
@@ -402,15 +493,14 @@ def train_start(model, dataset, epochs, batch_size, lr, gpu, num_classes, image_
         sentinel train start --model Qwen3.8 --dataset ./chat.jsonl --live
         sentinel train start --model cnn --dataset ./images --job-id exp_001
     """
-    from sentinel.cli.job_tracker import JobTracker, MetricsCollector
     from llm import supported_models
+    from sentinel.cli.job_tracker import JobTracker, MetricsCollector
 
     if not job_id:
         job_id = f"job_{int(uuid.uuid4().int / 1e10)}"
 
     llm_entry = next(
-        (m for m in supported_models.list_models()
-         if model in (m["display_name"], m["repo_id"])),
+        (m for m in supported_models.list_models() if model in (m["display_name"], m["repo_id"])),
         None,
     )
     kind = "llm" if llm_entry else "vision"
@@ -425,8 +515,13 @@ def train_start(model, dataset, epochs, batch_size, lr, gpu, num_classes, image_
 
     tracker = JobTracker()
     tracker.create_job(
-        job_id=job_id, model_name=model, dataset_path=dataset,
-        epochs=epochs, batch_size=batch_size, learning_rate=lr, gpu_enabled=gpu,
+        job_id=job_id,
+        model_name=model,
+        dataset_path=dataset,
+        epochs=epochs,
+        batch_size=batch_size,
+        learning_rate=lr,
+        gpu_enabled=gpu,
     )
     click.echo("\n✓ Job created and tracked")
     click.echo(f"   Job stored in: {tracker.storage_dir / f'{job_id}.json'}")
@@ -436,12 +531,21 @@ def train_start(model, dataset, epochs, batch_size, lr, gpu, num_classes, image_
 
     try:
         if kind == "llm":
-            _run_llm_training(model, dataset, model_format, epochs, batch_size, lr,
-                              job_id, tracker)
+            _run_llm_training(model, dataset, model_format, epochs, batch_size, lr, job_id, tracker)
         else:
-            _run_vision_training(model, dataset, target_object, epochs, batch_size,
-                                 num_classes, image_size, enable_validation, job_id,
-                                 tracker, metrics_collector)
+            _run_vision_training(
+                model,
+                dataset,
+                target_object,
+                epochs,
+                batch_size,
+                num_classes,
+                image_size,
+                enable_validation,
+                job_id,
+                tracker,
+                metrics_collector,
+            )
 
         tracker.complete_job(job_id)
 
@@ -467,8 +571,8 @@ def train_status(job_id):
         sentinel train status job_12345
         sentinel train status exp_001
     """
-    from sentinel.cli.job_tracker import JobTracker
     from sentinel.cli.dashboard import MetricsFormatter
+    from sentinel.cli.job_tracker import JobTracker
 
     tracker = JobTracker()
     job = tracker.get_job(job_id)
@@ -504,8 +608,13 @@ def train_status(job_id):
 
 
 @train_group.command(name="list")
-@click.option("--status", "-s", type=click.Choice(["pending", "running", "completed", "failed"]),
-              default=None, help="Filter by status")
+@click.option(
+    "--status",
+    "-s",
+    type=click.Choice(["pending", "running", "completed", "failed"]),
+    default=None,
+    help="Filter by status",
+)
 @click.option("--limit", "-l", type=int, default=10, help="Limit results (default: 10)")
 def train_list(status, limit):
     """
@@ -516,7 +625,7 @@ def train_list(status, limit):
         sentinel train list --status running
         sentinel train list --status completed --limit 5
     """
-    from sentinel.cli.job_tracker import JobTracker, JobStatus
+    from sentinel.cli.job_tracker import JobStatus, JobTracker
 
     tracker = JobTracker()
 
@@ -531,7 +640,7 @@ def train_list(status, limit):
         return
 
     click.echo(f"\n📋 Training Jobs ({len(jobs)} of {len(tracker.jobs)})")
-    click.echo("="*70)
+    click.echo("=" * 70)
 
     for job in jobs:
         # Status symbol
@@ -540,13 +649,15 @@ def train_list(status, limit):
             "running": "🔄",
             "completed": "✓",
             "failed": "✗",
-            "cancelled": "⊘"
+            "cancelled": "⊘",
         }.get(job.status.value, "?")
 
         click.echo(f"{status_symbol} {job.job_id}")
         click.echo(f"   Model:    {job.model_name}")
         click.echo(f"   Dataset:  {job.dataset_path}")
-        click.echo(f"   Progress: {job.current_epoch}/{job.total_epochs} epochs ({job.progress_percent:.0f}%)")
+        click.echo(
+            f"   Progress: {job.current_epoch}/{job.total_epochs} epochs ({job.progress_percent:.0f}%)"
+        )
 
         if job.metrics:
             latest = job.metrics[-1]
@@ -559,10 +670,12 @@ def train_list(status, limit):
 # HELP COMMANDS
 # ============================================================================
 
+
 @click.command()
 def examples():
     """Show usage examples"""
-    click.echo("""
+    click.echo(
+        """
     Open Model Foundry - CLI Examples
 
     1. List available models:
@@ -585,4 +698,5 @@ def examples():
 
     For more help:
        sentinel <command> --help
-    """)
+    """
+    )
