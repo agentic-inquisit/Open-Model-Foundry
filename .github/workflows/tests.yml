@@ -10,6 +10,7 @@ jobs:
   test:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ['3.11']
@@ -102,4 +103,4 @@ jobs:
 
     - name: Check dependencies with safety
       run: |
-        safety check --json
+        safety check --policy-file .safety-policy.yml --json
