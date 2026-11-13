@@ -52,10 +52,10 @@ class TrainingJob:
     created_at: str
     started_at: Optional[str] = None
     completed_at: Optional[str] = None
-    current_epoch: int = 0
+    current_epoch: float = 0
     total_epochs: int = 0
     progress_percent: float = 0.0
-    metrics: List[TrainingMetrics] = None
+    metrics: Optional[List[TrainingMetrics]] = None
 
     def __post_init__(self):
         if self.metrics is None:
