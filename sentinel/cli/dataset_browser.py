@@ -7,6 +7,7 @@ import json
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
+from typing import Any, Dict
 
 
 class DatasetBrowser:
@@ -20,7 +21,7 @@ class DatasetBrowser:
         self.images = []
         self.structure = None
         self.classes = defaultdict(list)
-        self.metadata = {
+        self.metadata: Dict[str, Any] = {
             "path": str(self.path),
             "scanned_at": datetime.now().isoformat(),
             "structure": None,
