@@ -6,12 +6,9 @@ import sys
 from pathlib import Path
 import tempfile
 import shutil
-import time
-
-sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from sentinel.cli.job_tracker import (
-    JobTracker, JobStatus, TrainingJob, TrainingMetrics, MetricsCollector
+    JobTracker, JobStatus, TrainingMetrics, MetricsCollector
 )
 from sentinel.cli.dashboard import TerminalDashboard, MetricsFormatter, ProgressIndicator
 
@@ -33,7 +30,7 @@ def test_create_job():
     assert job.model_name == "cnn"
     assert job.status == JobStatus.PENDING
     assert job.epochs == 10
-    assert job.gpu_enabled == True
+    assert job.gpu_enabled is True
     print("✓ Job creation works")
 
 

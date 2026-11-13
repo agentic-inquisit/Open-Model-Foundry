@@ -221,20 +221,20 @@ class DatasetBrowser:
         print(f"📊 Dataset Report: {self.path.name}")
         print(f"{'='*60}")
 
-        print(f"\n📈 Summary:")
+        print("\n📈 Summary:")
         print(f"   Total images: {summary['total_images']}")
         print(f"   Structure: {summary['structure'].replace('_', ' ').title()}")
         print(f"   Number of classes: {summary['num_classes']}")
 
         if summary['num_classes'] > 1:
-            print(f"\n🏷️ Class Distribution:")
+            print("\n🏷️ Class Distribution:")
             for cls, stats in distribution.items():
                 bar_length = int(stats['percentage'] / 5)
                 bar = "█" * bar_length
                 print(f"   {cls:20} {stats['count']:4d} images {stats['percentage']:5.1f}% {bar}")
 
         if summary['warnings']:
-            print(f"\n⚠️ Warnings:")
+            print("\n⚠️ Warnings:")
             for warning in summary['warnings']:
                 print(f"   {warning}")
 

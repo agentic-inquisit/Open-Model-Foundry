@@ -8,8 +8,6 @@ from pathlib import Path
 import tempfile
 import shutil
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
 from sentinel.cli.dataset_browser import DatasetBrowser
 
 
@@ -132,7 +130,8 @@ def test_split_generation():
         assert splits["train"]["count"] == 6
         assert splits["val"]["count"] == 2
         assert splits["test"]["count"] == 2
-        print(f"✓ Splits generated: {splits['train']['count']} train, {splits['val']['count']} val, {splits['test']['count']} test")
+        print(f"✓ Splits generated: {splits['train']['count']} train, "
+              f"{splits['val']['count']} val, {splits['test']['count']} test")
 
     finally:
         shutil.rmtree(tmppath)
