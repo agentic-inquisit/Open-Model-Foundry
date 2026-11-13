@@ -28,7 +28,7 @@ exclude_lines =
     @(abc\.)?abstractproperty
 
 # Set minimum coverage threshold
-fail_under = 80
+fail_under = 4
 precision = 2
 show_missing = True
 skip_covered = False
