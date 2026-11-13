@@ -9,13 +9,15 @@ import sys
 def test_cli_main_imports():
     """Test that CLI main module can be imported"""
     from sentinel.cli.main import cli
+
     assert cli is not None
     print("✓ CLI main module imports correctly")
 
 
 def test_cli_commands_imports():
     """Test that CLI commands can be imported"""
-    from sentinel.cli.commands import model_group, dataset_group, train_group
+    from sentinel.cli.commands import dataset_group, model_group, train_group
+
     assert model_group is not None
     assert dataset_group is not None
     assert train_group is not None
@@ -28,9 +30,9 @@ def test_model_commands_exist():
 
     # Get all commands in model_group
     commands = [cmd.name for cmd in model_group.commands.values()]
-    assert 'import' in commands
-    assert 'list' in commands
-    assert 'info' in commands
+    assert "import" in commands
+    assert "list" in commands
+    assert "info" in commands
     print(f"✓ Model commands exist: {commands}")
 
 
@@ -40,7 +42,7 @@ def test_dataset_commands_exist():
 
     # Get all commands in dataset_group
     commands = [cmd.name for cmd in dataset_group.commands.values()]
-    assert 'prepare' in commands
+    assert "prepare" in commands
     print(f"✓ Dataset commands exist: {commands}")
 
 
@@ -50,7 +52,7 @@ def test_train_commands_exist():
 
     # Get all commands in train_group
     commands = [cmd.name for cmd in train_group.commands.values()]
-    assert 'start' in commands
+    assert "start" in commands
     print(f"✓ Train commands exist: {commands}")
 
 
@@ -59,7 +61,7 @@ def test_cli_version():
     from sentinel.cli.main import cli
 
     # Version should be in the CLI group
-    assert hasattr(cli, '__doc__')
+    assert hasattr(cli, "__doc__")
     print("✓ CLI version attribute exists")
 
 
@@ -70,15 +72,15 @@ def test_package_structure():
     import sentinel.config
     import sentinel.utils
 
-    assert hasattr(sentinel, '__file__')
-    assert hasattr(sentinel.cli, '__file__')
+    assert hasattr(sentinel, "__file__")
+    assert hasattr(sentinel.cli, "__file__")
     print("✓ Package structure is valid")
 
 
 if __name__ == "__main__":
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Testing CLI Structure")
-    print("="*60 + "\n")
+    print("=" * 60 + "\n")
 
     tests = [
         test_cli_main_imports,
@@ -101,8 +103,8 @@ if __name__ == "__main__":
             print(f"✗ {test.__name__}: {e}")
             failed += 1
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print(f"Results: {passed} passed, {failed} failed")
-    print("="*60 + "\n")
+    print("=" * 60 + "\n")
 
     sys.exit(0 if failed == 0 else 1)
