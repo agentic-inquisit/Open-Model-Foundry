@@ -4,16 +4,17 @@ Tracks training jobs, metrics, and status
 """
 
 import json
-from datetime import datetime
-from pathlib import Path
-from enum import Enum
-from typing import Dict, List, Optional
-from dataclasses import dataclass, asdict
 import time
+from dataclasses import asdict, dataclass
+from datetime import datetime
+from enum import Enum
+from pathlib import Path
+from typing import Dict, List, Optional
 
 
 class JobStatus(Enum):
     """Training job status"""
+
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -24,6 +25,7 @@ class JobStatus(Enum):
 @dataclass
 class TrainingMetrics:
     """Single epoch metrics"""
+
     epoch: int
     loss: float
     accuracy: float
@@ -38,6 +40,7 @@ class TrainingMetrics:
 @dataclass
 class TrainingJob:
     """Training job information"""
+
     job_id: str
     model_name: str
     dataset_path: str
@@ -74,7 +77,7 @@ class TrainingJob:
             "current_epoch": self.current_epoch,
             "total_epochs": self.total_epochs,
             "progress_percent": self.progress_percent,
-            "metrics": [m.to_dict() for m in self.metrics]
+            "metrics": [m.to_dict() for m in self.metrics],
         }
 
 
@@ -96,7 +99,7 @@ class JobTracker:
         epochs: int,
         batch_size: int,
         learning_rate: float,
-        gpu_enabled: bool = False
+        gpu_enabled: bool = False,
     ) -> TrainingJob:
         """Create a new training job"""
         job = TrainingJob(
@@ -109,7 +112,7 @@ class JobTracker:
             learning_rate=learning_rate,
             gpu_enabled=gpu_enabled,
             created_at=datetime.now().isoformat(),
-            total_epochs=epochs
+            total_epochs=epochs,
         )
         self.jobs[job_id] = job
         self._save_job(job)
@@ -127,8 +130,7 @@ class JobTracker:
         return job
 
     def set_progress(self, job_id: str, current_epoch: float) -> TrainingJob:
-        """Update progress TrainingMetrics record.
-        """
+        """Update progress TrainingMetrics record."""
         if job_id not in self.jobs:
             raise ValueError(f"Job {job_id} not found")
 
@@ -227,8 +229,9 @@ class MetricsCollector:
         """Initialize metrics collector"""
         self.metrics: List[TrainingMetrics] = []
 
-    def add_metric(self, epoch: int, loss: float, accuracy: float,
-                   val_loss: float, val_accuracy: float):
+    def add_metric(
+        self, epoch: int, loss: float, accuracy: float, val_loss: float, val_accuracy: float
+    ):
         """Add metric for epoch"""
         metric = TrainingMetrics(
             epoch=epoch,
@@ -236,7 +239,7 @@ class MetricsCollector:
             accuracy=accuracy,
             val_loss=val_loss,
             val_accuracy=val_accuracy,
-            timestamp=datetime.now().isoformat()
+            timestamp=datetime.now().isoformat(),
         )
         self.metrics.append(metric)
         return metric
@@ -252,7 +255,7 @@ class MetricsCollector:
     def get_best_loss(self) -> float:
         """Get best (lowest) loss seen"""
         if not self.metrics:
-            return float('inf')
+            return float("inf")
         return min(m.loss for m in self.metrics)
 
     def get_best_accuracy(self) -> float:
@@ -292,8 +295,9 @@ class MetricsCollector:
 
         return "→ stable"
 
-    def estimate_time_remaining(self, start_time: float, current_epoch: int,
-                                total_epochs: int) -> str:
+    def estimate_time_remaining(
+        self, start_time: float, current_epoch: int, total_epochs: int
+    ) -> str:
         """Estimate time remaining based on epoch duration"""
         if current_epoch == 0:
             return "calculating..."
