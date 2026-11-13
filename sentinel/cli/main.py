@@ -6,7 +6,7 @@ Command-line interface for model management and training
 
 import click
 
-from sentinel.cli.commands import model_group, dataset_group, train_group
+from sentinel.cli.commands import dataset_group, model_group, train_group
 
 
 @click.group()
