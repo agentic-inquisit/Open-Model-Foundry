@@ -3,16 +3,16 @@ Dataset Browser Module
 Provides advanced dataset inspection, validation, and visualization
 """
 
-from pathlib import Path
-from collections import defaultdict
 import json
+from collections import defaultdict
 from datetime import datetime
+from pathlib import Path
 
 
 class DatasetBrowser:
     """Browse, validate, and analyze datasets"""
 
-    SUPPORTED_FORMATS = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.tiff'}
+    SUPPORTED_FORMATS = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".tiff"}
 
     def __init__(self, path):
         """Initialize browser with dataset path"""
@@ -26,7 +26,7 @@ class DatasetBrowser:
             "structure": None,
             "total_images": 0,
             "classes": {},
-            "warnings": []
+            "warnings": [],
         }
 
     def scan(self):
@@ -36,7 +36,8 @@ class DatasetBrowser:
 
         # Find all images
         self.images = [
-            f for f in self.path.rglob('*')
+            f
+            for f in self.path.rglob("*")
             if f.is_file() and f.suffix.lower() in self.SUPPORTED_FORMATS
         ]
 
@@ -58,7 +59,8 @@ class DatasetBrowser:
         """Detect dataset structure (flat vs class-based)"""
         # Check if all images are in root
         root_images = [
-            f for f in self.path.iterdir()
+            f
+            for f in self.path.iterdir()
             if f.is_file() and f.suffix.lower() in self.SUPPORTED_FORMATS
         ]
 
@@ -105,7 +107,7 @@ class DatasetBrowser:
             counts = {cls: len(imgs) for cls, imgs in self.classes.items()}
             max_count = max(counts.values())
             min_count = min(counts.values())
-            imbalance_ratio = max_count / min_count if min_count > 0 else float('inf')
+            imbalance_ratio = max_count / min_count if min_count > 0 else float("inf")
 
             if imbalance_ratio > 5:
                 warnings.append(
@@ -115,9 +117,7 @@ class DatasetBrowser:
 
         # Check for insufficient data
         if len(self.images) < 10:
-            warnings.append(
-                f"⚠️ Only {len(self.images)} images. Recommend 50+ for training"
-            )
+            warnings.append(f"⚠️ Only {len(self.images)} images. Recommend 50+ for training")
 
         # Check for classes with very few images
         for cls, imgs in self.classes.items():
@@ -129,9 +129,7 @@ class DatasetBrowser:
         # Check for duplicate filenames
         filenames = [img.name for img in self.images]
         if len(filenames) != len(set(filenames)):
-            warnings.append(
-                "⚠️ Duplicate filenames found across different folders"
-            )
+            warnings.append("⚠️ Duplicate filenames found across different folders")
 
         self.metadata["warnings"] = warnings
 
@@ -142,7 +140,7 @@ class DatasetBrowser:
             "structure": self.structure,
             "num_classes": len(self.classes),
             "classes": {cls: len(imgs) for cls, imgs in self.classes.items()},
-            "warnings": self.metadata["warnings"]
+            "warnings": self.metadata["warnings"],
         }
 
     def get_class_distribution(self):
@@ -152,15 +150,8 @@ class DatasetBrowser:
             return {}
 
         return {
-            cls: {
-                "count": len(imgs),
-                "percentage": (len(imgs) / total) * 100
-            }
-            for cls, imgs in sorted(
-                self.classes.items(),
-                key=lambda x: len(x[1]),
-                reverse=True
-            )
+            cls: {"count": len(imgs), "percentage": (len(imgs) / total) * 100}
+            for cls, imgs in sorted(self.classes.items(), key=lambda x: len(x[1]), reverse=True)
         }
 
     def get_split(self, train_ratio=0.8, val_ratio=0.1):
@@ -170,7 +161,7 @@ class DatasetBrowser:
         splits = {
             "train": {"images": [], "count": 0, "percentage": train_ratio * 100},
             "val": {"images": [], "count": 0, "percentage": val_ratio * 100},
-            "test": {"images": [], "count": 0, "percentage": test_ratio * 100}
+            "test": {"images": [], "count": 0, "percentage": test_ratio * 100},
         }
 
         total = len(self.images)
@@ -202,7 +193,7 @@ class DatasetBrowser:
             "structure": self.structure,
             "summary": self.get_summary(),
             "class_distribution": self.get_class_distribution(),
-            "samples": self.get_sample_images(5)
+            "samples": self.get_sample_images(5),
         }
 
         if output_file:
@@ -226,16 +217,16 @@ class DatasetBrowser:
         print(f"   Structure: {summary['structure'].replace('_', ' ').title()}")
         print(f"   Number of classes: {summary['num_classes']}")
 
-        if summary['num_classes'] > 1:
+        if summary["num_classes"] > 1:
             print("\n🏷️ Class Distribution:")
             for cls, stats in distribution.items():
-                bar_length = int(stats['percentage'] / 5)
+                bar_length = int(stats["percentage"] / 5)
                 bar = "█" * bar_length
                 print(f"   {cls:20} {stats['count']:4d} images {stats['percentage']:5.1f}% {bar}")
 
-        if summary['warnings']:
+        if summary["warnings"]:
             print("\n⚠️ Warnings:")
-            for warning in summary['warnings']:
+            for warning in summary["warnings"]:
                 print(f"   {warning}")
 
         print(f"\n{'='*60}\n")
