@@ -115,7 +115,7 @@ flake8==6.1.0
 isort==5.13.2
 mypy==1.7.1
 pylint==3.0.3
-bandit==1.7.5
+bandit==1.9.4
 # Note: safety removed due to pydantic 2.x incompatibility
 # Use bandit for security scanning instead: bandit -r . -ll
 
