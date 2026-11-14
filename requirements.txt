@@ -7,114 +7,114 @@
 # ============================================================================
 # SECURITY & AUTHENTICATION
 # ============================================================================
-PyJWT==2.8.0
+PyJWT==2.15.1
 passlib[bcrypt]==1.7.4
-python-jose[cryptography]==3.3.0
-cryptography==41.0.7
+python-jose[cryptography]==3.5.0
+cryptography==50.0.2
 
 # ============================================================================
 # WEB FRAMEWORK & API
 # ============================================================================
-fastapi==0.109.0
-uvicorn[standard]==0.27.0
-pydantic==2.6.1
-python-multipart==0.0.6
-python-dotenv==1.0.1
+fastapi==0.162.4
+uvicorn[standard]==0.54.0
+pydantic==2.14.3
+python-multipart==0.0.32
+python-dotenv==1.2.4
 
 # ============================================================================
 # DATABASE & ORM
 # ============================================================================
-sqlalchemy==2.0.23
-psycopg2-binary==2.9.9
+sqlalchemy==2.0.57
+psycopg2-binary==2.9.13
 
 # ============================================================================
 # DATA PROCESSING & NUMERICAL
 # ============================================================================
-numpy==1.26.4
-pandas==2.2.0
-scipy==1.11.4
-scikit-learn==1.4.0
+numpy==2.2.6
+pandas==2.3.3
+scipy==1.15.3
+scikit-learn==1.7.2
 
 # ============================================================================
 # MACHINE LEARNING & ML FRAMEWORKS
 # ============================================================================
 # JAX for high-performance ML with XLA compilation
-jax[cpu]==0.4.20
-jaxlib==0.4.20
-flax==0.7.4
-optax==0.1.7
+jax[cpu]==0.6.2
+jaxlib==0.6.2
+flax==0.10.7
+optax==0.2.8
 
 # PyTorch for model inference and fine-tuning
-torch==2.2.0
-torchvision==0.17.0
+torch==2.14.1
+torchvision==0.29.2
 
 # ============================================================================
 # LLM FINE-TUNING (Sessions)
 # ============================================================================
-transformers==4.38.2
-peft==0.9.0              # LoRA/QLoRA adapters
-accelerate==0.27.2       # Device placement, mixed precision
-huggingface-hub==0.20.3  # Model download from HF Hub
-sentencepiece==0.2.0     # Tokenizers for Qwen/Gemma/etc.
+transformers==5.20.2
+peft==0.21.2              # LoRA/QLoRA adapters
+accelerate==1.15.0       # Device placement, mixed precision
+huggingface-hub==2.4.0  # Model download from HF Hub
+sentencepiece==0.2.3     # Tokenizers for Qwen/Gemma/etc.
 # bitsandbytes==0.42.0   # QLoRA 4-bit/8-bit quantization (Linux/CUDA only, install manually if GPU available)
 # llama-cpp-python==0.2.55  # GGUF inference (install manually - requires build tools)
 
 # mlops/rag_orchestrator.py
-langchain==0.1.9
-langchain-community==0.0.24  # langchain_community.llms.LlamaCpp needs llama-cpp-python (see above, manual install)
-pymilvus==2.3.6              # Requires a running Milvus server (MILVUS_HOST/MILVUS_PORT env vars)
+langchain==1.4.10
+langchain-community==0.4.2  # langchain_community.llms.LlamaCpp needs llama-cpp-python (see above, manual install)
+pymilvus==3.0.3              # Requires a running Milvus server (MILVUS_HOST/MILVUS_PORT env vars)
 
 # TensorFlow for model export and conversion
-tensorflow==2.15.0
+tensorflow==2.21.0
 
 # ============================================================================
 # COMPUTER VISION
 # ============================================================================
-opencv-python-headless==4.9.0.80
-Pillow==10.2.0
+opencv-python-headless==5.0.0.93
+Pillow==12.3.0
 
 # ============================================================================
 # MODEL EXPORT & DEPLOYMENT
 # ============================================================================
-tf2onnx==1.16.1
-onnx==1.15.0
-onnxruntime==1.16.3
+tf2onnx==1.17.0
+onnx==1.23.2
+onnxruntime==1.24.3
 
 # ============================================================================
 # MONITORING & METRICS
 # ============================================================================
-prometheus-client==0.19.0
+prometheus-client==0.26.0
 
 # ============================================================================
 # HTTP & NETWORK
 # ============================================================================
-requests==2.31.0
+requests==2.34.2
 
 # ============================================================================
 # UTILITIES & DATE/TIME
 # ============================================================================
-python-dateutil==2.8.2
+python-dateutil==3.0.0
 
 # ============================================================================
 # VISUALIZATION & ANALYSIS
 # ============================================================================
-matplotlib==3.8.2
+matplotlib==3.10.9
 
 # ============================================================================
 # MOBILE & QR CODES
 # ============================================================================
-qrcode==8.0
+qrcode==8.2
 
 # ============================================================================
 # DEVELOPMENT & TESTING
 # ============================================================================
-pytest==7.4.3
-pytest-cov==4.1.0
-black==23.12.0
-flake8==6.1.0
-isort==5.13.2
-mypy==1.7.1
-pylint==3.0.3
+pytest==9.2.0
+pytest-cov==7.1.0
+black==26.10.1
+flake8==7.4.1
+isort==9.0.2
+mypy==2.4.1
+pylint==4.1.3
 bandit==1.9.4
 # Note: safety removed due to pydantic 2.x incompatibility
 # Use bandit for security scanning instead: bandit -r . -ll
