@@ -7,8 +7,8 @@ Guide for developers wanting to contribute to Open Model Foundry.
 ### 1. Clone Repository
 
 ```bash
-git clone https://github.com/agentic-inquisit/open-ml-foundry.git
-cd open-ml-foundry
+git clone https://github.com/agentic-inquisit/Open-Model-Foundry.git
+cd Open-Model-Foundry.git
 ```
 
 ### 2. Create Virtual Environment
@@ -134,7 +134,7 @@ git push origin feature/your-feature-name
 Go to GitHub and create PR with:
 
 **Title:** Clear, concise (60 chars max)
-- Good: "Add mixed precision training support"
+- Good: "Add: mixed precision training support"
 - Bad: "stuff"
 
 **Description:**
