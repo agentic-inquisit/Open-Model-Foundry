@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
 authors = [
-    {name = "Open Model Foundry Contributors", email = "info@openmodelfoundry.dev"}
+    {name = "Open Model Foundry Contributors"}
 ]
 keywords = ["fine-tuning", "machine-learning", "edge-ml", "privacy", "local-training"]
 classifiers = [
@@ -25,10 +25,10 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/agentic-inquisit/open-ml-foundry"
-Documentation = "https://open-ml-foundry.readthedocs.io"
-Repository = "https://github.com/agentic-inquisit/open-ml-foundry.git"
-Issues = "https://github.com/agentic-inquisit/open-ml-foundry/issues"
+Homepage = "https://github.com/agentic-inquisit/Open-Model-Foundry"
+Documentation = "https://open-model-foundry.readthedocs.io"
+Repository = "https://github.com/agentic-inquisit/Open-Model-Foundry.git"
+Issues = "https://github.com/agentic-inquisit/Open-Model-Foundry/issues"
 
 [project.optional-dependencies]
 dev = [
